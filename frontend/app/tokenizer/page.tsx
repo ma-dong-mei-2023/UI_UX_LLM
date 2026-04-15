@@ -1,11 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import TokenHighlighter from "@/components/tokenizer/TokenHighlighter";
+import BpeAnimation from "@/components/tokenizer/BpeAnimation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Play, Pause, SkipBack, SkipForward, RotateCcw } from "lucide-react";
 
 const DEFAULT_TEXT = `The quick brown fox jumps over the lazy dog.
 In the beginning was the Word, and the Word was with God.
@@ -21,9 +24,22 @@ export default function TokenizerPage() {
   const [steps, setSteps] = useState<any[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [finalVocabSize, setFinalVocabSize] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Auto-play effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isPlaying && currentStep < steps.length - 1) {
+      timer = setTimeout(() => {
+        setCurrentStep((prev) => prev + 1);
+      }, 800);
+    } else if (currentStep >= steps.length - 1) {
+      setIsPlaying(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isPlaying, currentStep, steps.length]);
 
   // Encode results
-  const [bpeEncoded, setBpeEncoded] = useState<any>(null);
   const [tiktokenEncoded, setTiktokenEncoded] = useState<any>(null);
 
   // Compare results
@@ -33,10 +49,11 @@ export default function TokenizerPage() {
     if (!text.trim()) return;
     setLoading(true);
     setError("");
+    setIsPlaying(false);
     try {
       const result: any = await api.trainBPE(text, vocabSize);
       setSteps(result.steps);
-      setCurrentStep(result.steps.length - 1);
+      setCurrentStep(0); // Start at the beginning for animation
       setFinalVocabSize(result.final_vocab_size);
     } catch (e: any) {
       setError(e.message);
@@ -82,17 +99,17 @@ export default function TokenizerPage() {
 
         {/* BPE Training Tab */}
         <TabsContent value="bpe" className="space-y-4 mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Input */}
-            <Card className="bg-gray-900 border-gray-700">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Input Config */}
+            <Card className="bg-gray-900 border-gray-800 lg:col-span-1">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base text-gray-200">输入文本</CardTitle>
+                <CardTitle className="text-base text-gray-200">配置训练</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  className="w-full h-36 bg-gray-800 text-gray-200 text-sm rounded-lg p-3 border border-gray-700 focus:border-purple-500 focus:outline-none resize-none font-mono"
+                  className="w-full h-32 bg-gray-800 text-gray-200 text-sm rounded-lg p-3 border border-gray-700 focus:border-purple-500 focus:outline-none resize-none font-mono"
                   placeholder="输入要训练分词器的文本..."
                 />
                 <div>
@@ -103,139 +120,87 @@ export default function TokenizerPage() {
                   <Slider
                     value={[vocabSize]}
                     onValueChange={(v) => setVocabSize(Array.isArray(v) ? v[0] : v)}
-                    min={300}
-                    max={2000}
-                    step={50}
+                    min={260}
+                    max={1000}
+                    step={10}
                     className="[&_[role=slider]]:bg-purple-500"
                   />
-                  <div className="flex justify-between text-xs text-gray-600 mt-1">
-                    <span>300</span><span>2000</span>
+                  <div className="flex justify-between text-[10px] text-gray-600 mt-1">
+                    <span>260 (仅字节)</span><span>1000</span>
                   </div>
                 </div>
-                <button
+                <Button
                   onClick={handleTrainBPE}
                   disabled={loading || !text.trim()}
-                  className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-medium transition-colors"
+                  className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium transition-colors"
                 >
-                  {loading ? "训练中..." : "开始 BPE 训练"}
-                </button>
-                {error && <p className="text-red-400 text-sm">{error}</p>}
+                  {loading ? "训练中..." : steps.length > 0 ? "重新训练 BPE" : "开始 BPE 训练"}
+                </Button>
+                {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
               </CardContent>
             </Card>
 
-            {/* Stats */}
-            <Card className="bg-gray-900 border-gray-700">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base text-gray-200">训练统计</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {steps.length > 0 ? (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <div className="text-xs text-gray-500">总合并步数</div>
-                        <div className="text-2xl font-bold text-purple-400">{steps.length}</div>
-                      </div>
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <div className="text-xs text-gray-500">最终词汇表</div>
-                        <div className="text-2xl font-bold text-blue-400">{finalVocabSize}</div>
-                      </div>
-                      {step && (
-                        <>
-                          <div className="bg-gray-800 rounded-lg p-3">
-                            <div className="text-xs text-gray-500">当前 Token 数</div>
-                            <div className="text-2xl font-bold text-green-400">{step.total_tokens}</div>
-                          </div>
-                          <div className="bg-gray-800 rounded-lg p-3">
-                            <div className="text-xs text-gray-500">压缩比</div>
-                            <div className="text-2xl font-bold text-orange-400">{step.compression_ratio}x</div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    {step && (
-                      <div className="bg-gray-800 rounded-lg p-3 space-y-1">
-                        <div className="text-xs text-gray-500">当前步骤合并</div>
-                        <div className="flex items-center gap-2 font-mono text-sm">
-                          <Badge variant="outline" className="text-purple-300 border-purple-500">
-                            &quot;{step.merged_pair_str[0]}&quot;
-                          </Badge>
-                          <span className="text-gray-500">+</span>
-                          <Badge variant="outline" className="text-purple-300 border-purple-500">
-                            &quot;{step.merged_pair_str[1]}&quot;
-                          </Badge>
-                          <span className="text-gray-500">→</span>
-                          <Badge className="bg-purple-600">
-                            &quot;{step.new_token}&quot;
-                          </Badge>
-                          <span className="text-gray-500 text-xs">#{step.new_token_id}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-gray-600 text-sm text-center py-8">
-                    训练后将在这里显示统计信息
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Step slider */}
-          {steps.length > 0 && (
-            <Card className="bg-gray-900 border-gray-700">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base text-gray-200">
-                  合并步骤浏览
-                  <span className="text-gray-500 font-normal text-sm ml-2">
-                    步骤 {currentStep + 1} / {steps.length}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Slider
-                  value={[currentStep]}
-                  onValueChange={(v) => setCurrentStep(Array.isArray(v) ? v[0] : v)}
-                  min={0}
-                  max={steps.length - 1}
-                  step={1}
-                  className="[&_[role=slider]]:bg-purple-500"
-                />
-                <div className="overflow-auto max-h-48">
-                  <table className="w-full text-sm text-gray-300">
-                    <thead>
-                      <tr className="text-gray-500 text-xs border-b border-gray-700">
-                        <th className="text-left pb-2">步骤</th>
-                        <th className="text-left pb-2">合并对</th>
-                        <th className="text-left pb-2">新 Token</th>
-                        <th className="text-left pb-2">词汇表大小</th>
-                        <th className="text-left pb-2">Token 总数</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {steps.slice(Math.max(0, currentStep - 5), currentStep + 1).map((s) => (
-                        <tr
-                          key={s.step}
-                          className={`border-b border-gray-800 font-mono text-xs ${
-                            s.step === step?.step ? "bg-purple-500/10" : ""
-                          }`}
+            {/* Animation Viewer */}
+            <div className="lg:col-span-2 space-y-4">
+              {steps.length > 0 ? (
+                <>
+                  <Card className="bg-gray-900 border-gray-700">
+                    <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+                      <CardTitle className="text-base text-gray-200">
+                        训练过程演示
+                        <Badge variant="secondary" className="ml-2 bg-gray-800 text-gray-400 border-gray-700">
+                          步数 {currentStep} / {steps.length - 1}
+                        </Badge>
+                      </CardTitle>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" size="icon" className="h-8 w-8 border-gray-700"
+                          onClick={() => { setCurrentStep(0); setIsPlaying(false); }}
+                          title="回到最初"
                         >
-                          <td className="py-1.5">{s.step}</td>
-                          <td className="py-1.5">
-                            &quot;{s.merged_pair_str[0]}&quot; + &quot;{s.merged_pair_str[1]}&quot;
-                          </td>
-                          <td className="py-1.5 text-purple-300">&quot;{s.new_token}&quot;</td>
-                          <td className="py-1.5">{s.current_vocab_size}</td>
-                          <td className="py-1.5">{s.total_tokens}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" size="icon" className="h-8 w-8 border-gray-700"
+                          onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                          disabled={currentStep === 0}
+                        >
+                          <SkipBack className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" size="icon" className="h-8 w-8 bg-purple-600/20 border-purple-500/50 hover:bg-purple-600/40"
+                          onClick={() => setIsPlaying(!isPlaying)}
+                        >
+                          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
+                        </Button>
+                        <Button 
+                          variant="outline" size="icon" className="h-8 w-8 border-gray-700"
+                          onClick={() => setCurrentStep(Math.min(steps.length - 1, currentStep + 1))}
+                          disabled={currentStep === steps.length - 1}
+                        >
+                          <SkipForward className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <BpeAnimation steps={steps} currentStep={currentStep} />
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <Card className="bg-gray-900 border-gray-800 border-dashed h-full flex flex-col items-center justify-center p-12 text-center">
+                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                    <Play className="h-8 w-8 text-gray-600 ml-1" />
+                  </div>
+                  <h3 className="text-gray-300 font-medium">准备好开始了吗？</h3>
+                  <p className="text-gray-500 text-sm mt-2 max-w-xs">
+                    点击左侧的“开始训练”按钮，我们将为您展示 BPE 是如何通过合并高频字符对来构建词汇表的。
+                  </p>
+                </Card>
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         {/* Compare Tab */}

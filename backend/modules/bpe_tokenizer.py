@@ -62,6 +62,22 @@ class BPETokenizerSimple:
 
         initial_count = len(token_ids)
 
+        # Yield initial state (Step 0)
+        yield {
+            "step": 0,
+            "merged_pair": None,
+            "merged_pair_str": None,
+            "new_token_id": None,
+            "new_token": None,
+            "current_vocab_size": len(self.vocab),
+            "total_tokens": len(token_ids),
+            "compression_ratio": 1.0,
+            "tokens_sample": [
+                {"id": tid, "s": self._decode_token(tid)}
+                for tid in token_ids[:100]
+            ]
+        }
+
         # Step 4: Merge loop
         num_merges = vocab_size - len(self.vocab)
         for step_idx in range(num_merges):
@@ -87,6 +103,10 @@ class BPETokenizerSimple:
                 "current_vocab_size": len(self.vocab),
                 "total_tokens": len(token_ids),
                 "compression_ratio": round(initial_count / max(len(token_ids), 1), 3),
+                "tokens_sample": [
+                    {"id": tid, "s": self._decode_token(tid)}
+                    for tid in token_ids[:100]
+                ]
             }
 
     def _find_freq_pair(self, token_ids: list[int]) -> tuple[int, int] | None:
