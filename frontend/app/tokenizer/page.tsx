@@ -87,14 +87,25 @@ export default function TokenizerPage() {
       <div>
         <h1 className="text-2xl font-bold text-white mb-1">✂️ 分词实验室</h1>
         <p className="text-gray-400 text-sm">
-          第 2 章 · 可视化字节对编码 (BPE) 的训练过程，理解分词器是如何构建词汇表的。
+          第 2 章 · 可视化字节对编码 (BPE)
+          的训练过程，理解分词器是如何构建词汇表的。
         </p>
       </div>
 
       <Tabs defaultValue="bpe">
         <TabsList className="bg-gray-800 border border-gray-700">
-          <TabsTrigger value="bpe" className="data-[state=active]:bg-purple-600">BPE 训练可视化</TabsTrigger>
-          <TabsTrigger value="compare" className="data-[state=active]:bg-blue-600">分词器对比</TabsTrigger>
+          <TabsTrigger
+            value="bpe"
+            className="data-[state=active]:bg-purple-600"
+          >
+            BPE 训练可视化
+          </TabsTrigger>
+          <TabsTrigger
+            value="compare"
+            className="data-[state=active]:bg-blue-600"
+          >
+            分词器对比
+          </TabsTrigger>
         </TabsList>
 
         {/* BPE Training Tab */}
@@ -104,7 +115,9 @@ export default function TokenizerPage() {
             <div className="lg:col-span-1 space-y-4">
               <Card className="bg-gray-900 border-gray-800">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base text-gray-200">配置训练</CardTitle>
+                  <CardTitle className="text-base text-gray-200">
+                    配置训练
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <textarea
@@ -116,18 +129,23 @@ export default function TokenizerPage() {
                   <div>
                     <div className="flex justify-between text-sm text-gray-400 mb-2">
                       <span>目标词汇表大小</span>
-                      <span className="text-purple-400 font-mono">{vocabSize}</span>
+                      <span className="text-purple-400 font-mono">
+                        {vocabSize}
+                      </span>
                     </div>
                     <Slider
                       value={[vocabSize]}
-                      onValueChange={(v) => setVocabSize(Array.isArray(v) ? v[0] : v)}
+                      onValueChange={(v) =>
+                        setVocabSize(Array.isArray(v) ? v[0] : v)
+                      }
                       min={260}
                       max={1000}
                       step={10}
                       className="[&_[role=slider]]:bg-purple-500"
                     />
                     <div className="flex justify-between text-[10px] text-gray-600 mt-1">
-                      <span>260 (仅字节)</span><span>1000</span>
+                      <span>260 (仅字节)</span>
+                      <span>1000</span>
                     </div>
                   </div>
                   <Button
@@ -135,9 +153,15 @@ export default function TokenizerPage() {
                     disabled={loading || !text.trim()}
                     className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium transition-colors"
                   >
-                    {loading ? "训练中..." : steps.length > 0 ? "重新训练 BPE" : "开始 BPE 训练"}
+                    {loading
+                      ? "训练中..."
+                      : steps.length > 0
+                        ? "重新训练 BPE"
+                        : "开始 BPE 训练"}
                   </Button>
-                  {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+                  {error && (
+                    <p className="text-red-400 text-xs mt-2">{error}</p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -150,15 +174,38 @@ export default function TokenizerPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-xs text-gray-400 space-y-2 leading-relaxed">
-                  <p>字节对编码 (BPE) 是通过不断<strong>合并最高频相邻单元</strong>来构建词汇表的过程：</p>
+                  <p>
+                    字节对编码 (BPE) 是通过不断
+                    <strong>合并最高频相邻单元</strong>来构建词汇表的过程：
+                  </p>
                   <ul className="list-decimal list-inside space-y-1 ml-1">
-                    <li><strong>字节初始化</strong>：将文本拆分为最小的可处理单位（字节）。</li>
-                    <li><strong>统计频率</strong>：在当前序列中找出出现次数最频繁的相邻对。</li>
-                    <li><strong>合并替换</strong>：将该最频繁对合并为一个新单元（如 'h' + 'e' → 'he'）。</li>
-                    <li><strong>迭代更新</strong>：重复合并过程，直到达到预设的词表大小。</li>
+                    <li>
+                      <strong>字节初始化</strong>
+                      ：将文本拆分为最小的可处理单位（字节）。
+                    </li>
+                    <li>
+                      <strong>统计频率</strong>
+                      ：在当前序列中找出出现次数最频繁的相邻对。
+                    </li>
+                    <li>
+                      <strong>合并替换</strong>
+                      ：将该最频繁对合并为一个新单元（如 'h' + 'e' → 'he'）。
+                    </li>
+                    <li>
+                      <strong>迭代更新</strong>
+                      ：重复合并过程，直到达到预设的词表大小。
+                    </li>
                   </ul>
                   <p className="mt-2 text-purple-400/70 italic text-[10px]">
                     这使得分词器能自发学习文本模式，将常用词组缩减为单个 Token。
+                  </p>
+                  <br></br>
+                  <p>
+                    用自己的话理解：将常用高频单词组成一个Token。
+                    作用：提升后续模型训练效率（猜测）。
+                    大致步骤：基于已有的256个字节（ASCII码，特殊符号%、&等等）把提供的文本转成TOKEN；然后把频率出现最高的TOEKN组合对合并成一个TOEKN，比如
+                    e 和 空字符串“ ”；然后重复这一步骤，最终可能会有类似 the
+                    this that 这种常用的单词作为一个TOKEN。
                   </p>
                 </CardContent>
               </Card>
@@ -173,39 +220,66 @@ export default function TokenizerPage() {
                       <CardTitle className="text-base text-gray-200 flex items-center flex-wrap gap-2">
                         <span>训练过程演示</span>
                         <div className="flex gap-2">
-                          <Badge variant="secondary" className="bg-gray-800 text-gray-400 border-gray-700">
+                          <Badge
+                            variant="secondary"
+                            className="bg-gray-800 text-gray-400 border-gray-700"
+                          >
                             步数 {currentStep} / {steps.length - 1}
                           </Badge>
-                          <Badge variant="secondary" className="bg-purple-900/40 text-purple-300 border-purple-500/30">
+                          <Badge
+                            variant="secondary"
+                            className="bg-purple-900/40 text-purple-300 border-purple-500/30"
+                          >
                             词汇表 {step?.current_vocab_size}
                           </Badge>
                         </div>
                       </CardTitle>
-                      
+
                       <div className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" size="icon" className="h-8 w-8 border-gray-700"
-                          onClick={() => { setCurrentStep(0); setIsPlaying(false); }}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 border-gray-700"
+                          onClick={() => {
+                            setCurrentStep(0);
+                            setIsPlaying(false);
+                          }}
                           title="回到最初"
                         >
                           <RotateCcw className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" size="icon" className="h-8 w-8 border-gray-700"
-                          onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 border-gray-700"
+                          onClick={() =>
+                            setCurrentStep(Math.max(0, currentStep - 1))
+                          }
                           disabled={currentStep === 0}
                         >
                           <SkipBack className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" size="icon" className="h-8 w-8 bg-purple-600/20 border-purple-500/50 hover:bg-purple-600/40"
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 bg-purple-600/20 border-purple-500/50 hover:bg-purple-600/40"
                           onClick={() => setIsPlaying(!isPlaying)}
                         >
-                          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
+                          {isPlaying ? (
+                            <Pause className="h-4 w-4" />
+                          ) : (
+                            <Play className="h-4 w-4 fill-current" />
+                          )}
                         </Button>
-                        <Button 
-                          variant="outline" size="icon" className="h-8 w-8 border-gray-700"
-                          onClick={() => setCurrentStep(Math.min(steps.length - 1, currentStep + 1))}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 border-gray-700"
+                          onClick={() =>
+                            setCurrentStep(
+                              Math.min(steps.length - 1, currentStep + 1),
+                            )
+                          }
                           disabled={currentStep === steps.length - 1}
                         >
                           <SkipForward className="h-4 w-4" />
@@ -222,9 +296,12 @@ export default function TokenizerPage() {
                   <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4">
                     <Play className="h-8 w-8 text-gray-600 ml-1" />
                   </div>
-                  <h3 className="text-gray-300 font-medium">准备好开始了吗？</h3>
+                  <h3 className="text-gray-300 font-medium">
+                    准备好开始了吗？
+                  </h3>
                   <p className="text-gray-500 text-sm mt-2 max-w-xs">
-                    点击左侧的“开始训练”按钮，我们将为您展示 BPE 是如何通过合并高频字符对来构建词汇表的。
+                    点击左侧的“开始训练”按钮，我们将为您展示 BPE
+                    是如何通过合并高频字符对来构建词汇表的。
                   </p>
                 </Card>
               )}
@@ -264,17 +341,20 @@ export default function TokenizerPage() {
                         {compareResult.tiktoken.num_tokens} tokens
                       </Badge>
                       <Badge className="bg-gray-700 text-gray-300">
-                        词汇表 {compareResult.tiktoken.vocab_size.toLocaleString()}
+                        词汇表{" "}
+                        {compareResult.tiktoken.vocab_size.toLocaleString()}
                       </Badge>
                     </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <TokenHighlighter
-                    tokens={compareResult.tiktoken.tokens.map((t: string, i: number) => ({
-                      token: t,
-                      id: compareResult.tiktoken.token_ids[i],
-                    }))}
+                    tokens={compareResult.tiktoken.tokens.map(
+                      (t: string, i: number) => ({
+                        token: t,
+                        id: compareResult.tiktoken.token_ids[i],
+                      }),
+                    )}
                   />
                   <div className="mt-2 text-xs text-gray-500">
                     压缩比: {compareResult.compression_tiktoken}x
@@ -298,10 +378,12 @@ export default function TokenizerPage() {
                 </CardHeader>
                 <CardContent>
                   <TokenHighlighter
-                    tokens={compareResult.custom_bpe.tokens.map((t: string, i: number) => ({
-                      token: t,
-                      id: compareResult.custom_bpe.token_ids[i],
-                    }))}
+                    tokens={compareResult.custom_bpe.tokens.map(
+                      (t: string, i: number) => ({
+                        token: t,
+                        id: compareResult.custom_bpe.token_ids[i],
+                      }),
+                    )}
                   />
                   <div className="mt-2 text-xs text-gray-500">
                     压缩比: {compareResult.compression_bpe}x
