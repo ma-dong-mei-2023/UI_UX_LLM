@@ -100,45 +100,69 @@ export default function TokenizerPage() {
         {/* BPE Training Tab */}
         <TabsContent value="bpe" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Input Config */}
-            <Card className="bg-gray-900 border-gray-800 lg:col-span-1">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base text-gray-200">配置训练</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  className="w-full h-32 bg-gray-800 text-gray-200 text-sm rounded-lg p-3 border border-gray-700 focus:border-purple-500 focus:outline-none resize-none font-mono"
-                  placeholder="输入要训练分词器的文本..."
-                />
-                <div>
-                  <div className="flex justify-between text-sm text-gray-400 mb-2">
-                    <span>目标词汇表大小</span>
-                    <span className="text-purple-400 font-mono">{vocabSize}</span>
-                  </div>
-                  <Slider
-                    value={[vocabSize]}
-                    onValueChange={(v) => setVocabSize(Array.isArray(v) ? v[0] : v)}
-                    min={260}
-                    max={1000}
-                    step={10}
-                    className="[&_[role=slider]]:bg-purple-500"
+            {/* Left Column: Config & Principle */}
+            <div className="lg:col-span-1 space-y-4">
+              <Card className="bg-gray-900 border-gray-800">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-gray-200">配置训练</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <textarea
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    className="w-full h-32 bg-gray-800 text-gray-200 text-sm rounded-lg p-3 border border-gray-700 focus:border-purple-500 focus:outline-none resize-none font-mono"
+                    placeholder="输入要训练分词器的文本..."
                   />
-                  <div className="flex justify-between text-[10px] text-gray-600 mt-1">
-                    <span>260 (仅字节)</span><span>1000</span>
+                  <div>
+                    <div className="flex justify-between text-sm text-gray-400 mb-2">
+                      <span>目标词汇表大小</span>
+                      <span className="text-purple-400 font-mono">{vocabSize}</span>
+                    </div>
+                    <Slider
+                      value={[vocabSize]}
+                      onValueChange={(v) => setVocabSize(Array.isArray(v) ? v[0] : v)}
+                      min={260}
+                      max={1000}
+                      step={10}
+                      className="[&_[role=slider]]:bg-purple-500"
+                    />
+                    <div className="flex justify-between text-[10px] text-gray-600 mt-1">
+                      <span>260 (仅字节)</span><span>1000</span>
+                    </div>
                   </div>
-                </div>
-                <Button
-                  onClick={handleTrainBPE}
-                  disabled={loading || !text.trim()}
-                  className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium transition-colors"
-                >
-                  {loading ? "训练中..." : steps.length > 0 ? "重新训练 BPE" : "开始 BPE 训练"}
-                </Button>
-                {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
-              </CardContent>
-            </Card>
+                  <Button
+                    onClick={handleTrainBPE}
+                    disabled={loading || !text.trim()}
+                    className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium transition-colors"
+                  >
+                    {loading ? "训练中..." : steps.length > 0 ? "重新训练 BPE" : "开始 BPE 训练"}
+                  </Button>
+                  {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+                </CardContent>
+              </Card>
+
+              {/* BPE Principle Card */}
+              <Card className="bg-gray-900 border-gray-800 border-purple-900/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-purple-300 flex items-center gap-2">
+                    <div className="w-1 h-4 bg-purple-500 rounded-full" />
+                    BPE 训练原理
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-xs text-gray-400 space-y-2 leading-relaxed">
+                  <p>字节对编码 (BPE) 是通过不断<strong>合并最高频相邻单元</strong>来构建词汇表的过程：</p>
+                  <ul className="list-decimal list-inside space-y-1 ml-1">
+                    <li><strong>字节初始化</strong>：将文本拆分为最小的可处理单位（字节）。</li>
+                    <li><strong>统计频率</strong>：在当前序列中找出出现次数最频繁的相邻对。</li>
+                    <li><strong>合并替换</strong>：将该最频繁对合并为一个新单元（如 'h' + 'e' → 'he'）。</li>
+                    <li><strong>迭代更新</strong>：重复合并过程，直到达到预设的词表大小。</li>
+                  </ul>
+                  <p className="mt-2 text-purple-400/70 italic text-[10px]">
+                    这使得分词器能自发学习文本模式，将常用词组缩减为单个 Token。
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Animation Viewer */}
             <div className="lg:col-span-2 space-y-4">
