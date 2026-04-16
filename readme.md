@@ -21,14 +21,30 @@ UI_UX_LLM/
 
 # 终端 1：启动后端
 
+// Python 3.12.7
+
 cd backend
+
+// 虚拟环境
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
 pip install -r requirements.txt
 python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload --ws wsproto
 
+// 退出虚拟环境
+deactivate
+
+// 指定 Python 版本（多版本共存时）
+py -3.11 -m venv venv
+
 # 终端 2：启动前端
 
+// node v22.20.0
+
 cd frontend
+npm i
 npm run dev
 
 访问 http://localhost:3000 即可使用。

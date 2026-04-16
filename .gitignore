@@ -1,5 +1,6 @@
 .idea
 .claude
+.trae
 __pycache__/
 *.py[cod]
 *$py.class
