@@ -170,11 +170,16 @@ export default function TokenizerPage() {
                 <>
                   <Card className="bg-gray-900 border-gray-700">
                     <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
-                      <CardTitle className="text-base text-gray-200">
-                        训练过程演示
-                        <Badge variant="secondary" className="ml-2 bg-gray-800 text-gray-400 border-gray-700">
-                          步数 {currentStep} / {steps.length - 1}
-                        </Badge>
+                      <CardTitle className="text-base text-gray-200 flex items-center flex-wrap gap-2">
+                        <span>训练过程演示</span>
+                        <div className="flex gap-2">
+                          <Badge variant="secondary" className="bg-gray-800 text-gray-400 border-gray-700">
+                            步数 {currentStep} / {steps.length - 1}
+                          </Badge>
+                          <Badge variant="secondary" className="bg-purple-900/40 text-purple-300 border-purple-500/30">
+                            词汇表 {step?.current_vocab_size}
+                          </Badge>
+                        </div>
                       </CardTitle>
                       
                       <div className="flex items-center gap-2">

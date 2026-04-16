@@ -80,6 +80,7 @@ class BPETokenizerSimple:
 
         # Step 4: Merge loop
         num_merges = vocab_size - len(self.vocab)
+        last_yield = None
         for step_idx in range(num_merges):
             pair = self._find_freq_pair(token_ids)
             if pair is None:
@@ -91,7 +92,7 @@ class BPETokenizerSimple:
             self.vocab[new_id] = merged_bytes
             token_ids = self._replace_pair(token_ids, pair, new_id)
 
-            yield {
+            last_yield = {
                 "step": step_idx + 1,
                 "merged_pair": pair,
                 "merged_pair_str": (
@@ -108,6 +109,16 @@ class BPETokenizerSimple:
                     for tid in token_ids[:100]
                 ]
             }
+            if step_idx < num_merges - 1:
+                yield last_yield
+
+        # Final yield with full vocab
+        if last_yield:
+            last_yield["full_vocab"] = [
+                {"id": tid, "token": self._decode_token(tid)}
+                for tid in sorted(self.vocab.keys())
+            ]
+            yield last_yield
 
     def _find_freq_pair(self, token_ids: list[int]) -> tuple[int, int] | None:
         """Find the most frequent adjacent pair."""
