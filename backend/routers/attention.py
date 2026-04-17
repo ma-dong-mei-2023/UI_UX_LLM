@@ -11,6 +11,7 @@ class AttentionRequest(BaseModel):
     tokens: list[str]
     d_model: int = 64
     n_heads: int = 4
+    mode: str = "random"
 
 
 @router.post("/simple")
@@ -19,7 +20,7 @@ def simple_attention(req: AttentionRequest):
         raise HTTPException(400, "Need at least 2 tokens")
     if len(req.tokens) > 32:
         raise HTTPException(400, "Maximum 32 tokens")
-    return run_simple_attention(req.tokens, d_in=req.d_model, d_out=req.d_model)
+    return run_simple_attention(req.tokens, d_in=req.d_model, d_out=req.d_model, mode=req.mode)
 
 
 @router.post("/causal")
@@ -28,7 +29,7 @@ def causal_attention(req: AttentionRequest):
         raise HTTPException(400, "Need at least 2 tokens")
     if len(req.tokens) > 32:
         raise HTTPException(400, "Maximum 32 tokens")
-    return run_causal_attention(req.tokens, d_in=req.d_model, d_out=req.d_model)
+    return run_causal_attention(req.tokens, d_in=req.d_model, d_out=req.d_model, mode=req.mode)
 
 
 @router.post("/multihead")
@@ -39,7 +40,7 @@ def multihead_attention(req: AttentionRequest):
         raise HTTPException(400, "Maximum 32 tokens")
     if req.d_model % req.n_heads != 0:
         raise HTTPException(400, f"d_model ({req.d_model}) must be divisible by n_heads ({req.n_heads})")
-    return run_multihead_attention(req.tokens, d_model=req.d_model, n_heads=req.n_heads)
+    return run_multihead_attention(req.tokens, d_model=req.d_model, n_heads=req.n_heads, mode=req.mode)
 
 
 @router.get("/configs")

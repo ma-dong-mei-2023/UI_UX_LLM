@@ -37,20 +37,20 @@ export const api = {
     apiFetch("/api/architecture/validate", { method: "POST", body: JSON.stringify(config) }),
 
   // Attention
-  simpleAttention: (tokens: string[], d_model: number, n_heads: number) =>
+  simpleAttention: (tokens: string[], d_model: number, n_heads: number, mode: string = "random") =>
     apiFetch("/api/attention/simple", {
       method: "POST",
-      body: JSON.stringify({ tokens, d_model, n_heads }),
+      body: JSON.stringify({ tokens, d_model, n_heads, mode }),
     }),
-  causalAttention: (tokens: string[], d_model: number, n_heads: number) =>
+  causalAttention: (tokens: string[], d_model: number, n_heads: number, mode: string = "random") =>
     apiFetch("/api/attention/causal", {
       method: "POST",
-      body: JSON.stringify({ tokens, d_model, n_heads }),
+      body: JSON.stringify({ tokens, d_model, n_heads, mode }),
     }),
-  multiheadAttention: (tokens: string[], d_model: number, n_heads: number) =>
+  multiheadAttention: (tokens: string[], d_model: number, n_heads: number, mode: string = "random") =>
     apiFetch("/api/attention/multihead", {
       method: "POST",
-      body: JSON.stringify({ tokens, d_model, n_heads }),
+      body: JSON.stringify({ tokens, d_model, n_heads, mode }),
     }),
 
   // Training
